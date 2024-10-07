@@ -31,9 +31,12 @@ To run the game locally, follow these steps:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/spacegame.git
-   cd spacegame
+   git clone https://github.com/saisaurav78/Space_Game.git
+   
+   cd Space_Game
+   
    pip install pygame
+   
    python main.py
   
 ## Game Controls
