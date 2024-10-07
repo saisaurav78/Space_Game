@@ -1,29 +1,39 @@
+#Spacegame using procedural style programming
+
 import pygame
 from pygame import *
 from random import *
 import math
+import os
+
+#base_path
+base_path = os.path.dirname(os.path.abspath(__file__))
+
 
 #CreatingDisplay
 pygame.init()
 pygame.display.set_caption("space world")
 screen=pygame.display.set_mode((640,480))
-icon= pygame.image.load("spacegame/assets/images/player.png")
+icon= pygame.image.load(os.path.join(base_path, 'assets', 'images', 'blast.png'))
 pygame.display.set_icon(icon) 
 clock=pygame.time.Clock()
 
-bg=pygame.image.load("spacegame/assets/images/bg.jpg")
-explosion= pygame.image.load("spacegame/assets/images/blast.png")
 
+#CreatingBackground
+bg = pygame.image.load(os.path.join(base_path, 'assets', 'images', 'bg.jpg'))
+
+#CreatingPlayer
+explosion = pygame.image.load(os.path.join(base_path, 'assets', 'images', 'blast.png'))
 
 
 #creatingPlayer
-playerImg=pygame.image.load("spacegame/assets/images/player.png")
+playerImg = pygame.image.load(os.path.join(base_path, 'assets', 'images', 'player.png'))
 playerX=300
 playerY=400
 playerHealth=50
 
 #creatingEnemy
-enemyImg=pygame.image.load("spacegame/assets/images/ufo.png")
+enemyImg = pygame.image.load(os.path.join(base_path, 'assets', 'images', 'ufo.png'))
 enemyX=0
 enemyY=0
 enemyX_Change=2.8
@@ -32,7 +42,7 @@ enemyBulletYchange=8
 
 
 #PlayerBullets
-bulletImg=pygame.image.load("spacegame/assets/images/bullet.png")
+bulletImg = pygame.image.load(os.path.join(base_path, 'assets', 'images', 'bullet.png'))
 bulletX=playerX
 bulletY=playerY
 bulletXchange=0
@@ -42,16 +52,15 @@ bulletState="ready"
 
 
 #EnemyBullets
-enemybulletImg=pygame.image.load("spacegame/assets/images/enemybullets.png")
+enemybulletImg = pygame.image.load(os.path.join(base_path, 'assets', 'images', 'enemybullets.png'))
 enemybulletX=enemyX
 enemybulletY=enemyY
 
 #GameSounds
-bulletsound=pygame.mixer.Sound("spacegame/assets/sounds/gunshot.wav")
+bulletsound = pygame.mixer.Sound(os.path.join(base_path, 'assets', 'sounds', 'gunshot.wav'))
 
 
 #DisplayingToScreen
-
 def enemy():
     screen.blit(enemyImg,(enemyX,enemyY))
 
