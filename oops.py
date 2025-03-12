@@ -15,9 +15,11 @@ playerimg = pygame.image.load("spacegame/assets/images/player.png")
 enemyimg = pygame.image.load("spacegame/assets/images/ufo.png")
 bulletimg = pygame.image.load("spacegame/assets/images/bullet.png")
 enemyBulletimg = pygame.image.load("spacegame/assets/images/enemybullets.png")
+blastimg =pygame.image.load("spacegame/assets/images/blast.png")
+
 
 # Load bullet fire sound
-bullet_fire_sound = pygame.mixer.Sound("spacegame/assets/sounds/gunshot.wav")  # load firing sound
+bullet_fire_sound = pygame.mixer.Sound("spacegame/assets/sounds/gunshot.wav")  
 
 # Set colors
 black = (0, 0, 0)
@@ -86,14 +88,20 @@ class Ship:
         x = self.X_pos
         y = self.Y_pos
 
-        if self.Health >= 100:
+        if self.Health >60:
             color = (0, 255, 0)  # Green
-        elif self.Health < 50 and self.Health>25:
+        elif self.Health > 20 and self.Health<=60:
             color = (255, 255, 0)  # Yellow
         else:
             color = (255, 0, 0)  # Red
         
         pygame.draw.rect(screen, color, (x-15 , y+69 , self.Health, 8))
+
+    def collision(self, bulletX, bulletY):
+        distance = math.sqrt(math.pow((self.X_pos - bulletX), 2) + math.pow((self.Y_pos - bulletY), 2))
+        if distance < 27: 
+            return True
+        return False
 
 
 # Enemy Object
@@ -140,6 +148,7 @@ enemyBullets = []
 
 # Main Loop
 running = True
+displaying_level=False
 mainmenu = Menu(None, white, gamefont, options, 180, 150)
 gameloop = False
 starting_game = False  # New variable to track if the game is starting
@@ -171,10 +180,19 @@ while running:
         starting_game = False
         continue
 
+    # if displaying_level:
+    #     level_text = gamefont.render("Level-1", True, white)
+    #     text_rect = starting_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
+    #     screen.blit(level_text, text_rect)
+    #     pygame.display.update()
+    #     pygame.time.delay(2000)
+    #     displaying_level=False
+
     if gameloop:
         screen.blit(bg, (0, 0))
-        screen.blit(Player.ShipImg, (Player.X_pos, Player.Y_pos))
-        Player.healthbar() 
+        if Player.Health!=0:
+            screen.blit(Player.ShipImg, (Player.X_pos, Player.Y_pos))
+            Player.healthbar() 
 
         # Check if the bullet is active before drawing it
         if PlayerBullet:
@@ -183,6 +201,7 @@ while running:
             # Reset the bullet if it goes off-screen
             if PlayerBullet.bulletY < 0:
                 PlayerBullet = None  # Reset the bullet if it goes off-screen
+
 
         # Fire bullet when space is pressed
         KEY = pygame.key.get_pressed()
@@ -204,6 +223,16 @@ while running:
             screen.blit(bullet.bulletImg, (bullet.bulletX, bullet.bulletY))  # Draw bullet at its own position
             if bullet.bulletY > 480:  # Remove bullet if it goes off screen
                 enemyBullets.remove(bullet)
+
+             # Collision Detection for Enemy Bullets
+            player_collision = Player.collision(bullet.bulletX, bullet.bulletY)
+            if player_collision:
+                screen.blit(blastimg, (Player.X_pos, Player.Y_pos))
+                Player.Health -= 10
+                enemyBullets.remove(bullet)
+
+
+            
 
         Player.move_X(KEY)
 
