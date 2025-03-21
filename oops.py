@@ -27,35 +27,50 @@ white = (255, 255, 255)
 
 # Define options and font
 options = {1: 'Start Game', 2: 'Quit Game'}
-gamefont = pygame.font.Font('freesansbold.ttf', 50)
+def get_font(size):
+    return pygame.font.Font('freesansbold.ttf', size)
+
+
+class UI:
+    def __init__(self,level,score):
+        self.font=get_font(20)
+        self.level=level
+        self.score=score
+
+    def render(self, text, x_pos, y_pos, value):
+        rendered_text=self.font.render(f"{text}:{value}", True, white)
+        screen.blit(rendered_text, (x_pos,y_pos) )
+
+
+    class Menu:
+        def __init__(self, bg, color, options, x_pos, y_pos):
+            self.bg = bg
+            self.color = color
+            self.font = get_font(50)
+            self.options = options
+            self.x_pos = x_pos
+            self.original_y_pos = y_pos
+            self.y_pos = y_pos
+
+        def render_menu(self, event):
+            self.y_pos = self.original_y_pos
+            mouse_x, mouse_y = pygame.mouse.get_pos()
+
+            for key, option in self.options.items():
+                menu_rect = pygame.Rect(self.x_pos, self.y_pos, 280, 50)
+                rect_color = (32, 227, 38) if menu_rect.collidepoint(mouse_x, mouse_y) else (27, 123, 196)
+                pygame.draw.rect(screen, rect_color, menu_rect)
+                text = self.font.render(option, True, self.color)
+                text_rect = text.get_rect(center=(self.x_pos + 140, self.y_pos + 25))
+                screen.blit(text, text_rect)
+
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and menu_rect.collidepoint(mouse_x, mouse_y):
+                    print(f'Option chosen: {option}')
+
+                self.y_pos += 100
 
 # Menu Object
-class Menu:
-    def __init__(self, bg, color, font, options, x_pos, y_pos):
-        self.bg = bg
-        self.color = color
-        self.font = font
-        self.options = options
-        self.x_pos = x_pos
-        self.original_y_pos = y_pos
-        self.y_pos = y_pos
 
-    def render_menu(self, event):
-        self.y_pos = self.original_y_pos
-        mouse_x, mouse_y = pygame.mouse.get_pos()
-
-        for key, option in self.options.items():
-            menu_rect = pygame.Rect(self.x_pos, self.y_pos, 280, 50)
-            rect_color = (32, 227, 38) if menu_rect.collidepoint(mouse_x, mouse_y) else (27, 123, 196)
-            pygame.draw.rect(screen, rect_color, menu_rect)
-            text = self.font.render(option, True, self.color)
-            text_rect = text.get_rect(center=(self.x_pos + 140, self.y_pos + 25))
-            screen.blit(text, text_rect)
-
-            if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1 and menu_rect.collidepoint(mouse_x, mouse_y):
-                print(f'Option chosen: {option}')
-
-            self.y_pos += 100
 
 # Ship Object
 class Ship:
@@ -130,6 +145,7 @@ Player = Ship(playerimg, 300, 400, 100)
 # Enemy management
 enemies = []
 level = 1
+score=0
 enemycount = 3
 
 if level == 2:
@@ -149,9 +165,12 @@ enemyBullets = []
 # Main Loop
 running = True
 displaying_level=False
-mainmenu = Menu(None, white, gamefont, options, 180, 150)
+ui=UI(level, score)
+mainmenu = UI.Menu(None,  white, options, 180, 150)
 gameloop = False
 starting_game = False  # New variable to track if the game is starting
+
+
 
 while running:
     # Handle events
@@ -172,7 +191,7 @@ while running:
 
     if starting_game:
         screen.fill(black)
-        starting_text = gamefont.render("Starting Game...", True, white)
+        starting_text = get_font(50).render("Starting Game...", True, white)
         text_rect = starting_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
         screen.blit(starting_text, text_rect)
         pygame.display.update()
@@ -180,16 +199,10 @@ while running:
         starting_game = False
         continue
 
-    # if displaying_level:
-    #     level_text = gamefont.render("Level-1", True, white)
-    #     text_rect = starting_text.get_rect(center=(screen.get_width() // 2, screen.get_height() // 2))
-    #     screen.blit(level_text, text_rect)
-    #     pygame.display.update()
-    #     pygame.time.delay(2000)
-    #     displaying_level=False
-
     if gameloop:
         screen.blit(bg, (0, 0))
+        ui.render('level', 5,10, 0)
+        ui.render('score', 550,10, score)
         if Player.Health!=0:
             screen.blit(Player.ShipImg, (Player.X_pos, Player.Y_pos))
             Player.healthbar() 
@@ -202,7 +215,6 @@ while running:
             if PlayerBullet.bulletY < 0:
                 PlayerBullet = None  # Reset the bullet if it goes off-screen
 
-
         # Fire bullet when space is pressed
         KEY = pygame.key.get_pressed()
         if KEY[K_SPACE] and PlayerBullet is None:
@@ -213,10 +225,21 @@ while running:
             screen.blit(enemy.ShipImg, (enemy.X_pos, enemy.Y_pos))
             enemy.move_X()      
 
-            if random() < 0.005: #Enemy Bullets frequency
+            if random() < 0.006: #Enemy Bullets frequency
                 # Create a new enemy bullet starting from the enemy's position
                 new_enemy_bullet = Enemy.EnemyBullet(enemyBulletimg, enemy.X_pos + 16, enemy.Y_pos + 20)  # Adjusted starting position
                 enemyBullets.append(new_enemy_bullet)
+
+         
+            if PlayerBullet and enemy.collision(PlayerBullet.bulletX, PlayerBullet.bulletY):
+                screen.blit(blastimg, (enemy.X_pos, enemy.Y_pos))
+
+                enemy.X_pos = randint(0, 400)
+                enemy.Y_pos = randint(0, 150)
+
+                PlayerBullet = None  # Remove bullet on hit
+                score+=1     
+
 
         for bullet in enemyBullets:
             bullet.move_Y()  # Update bullet position
@@ -230,9 +253,6 @@ while running:
                 screen.blit(blastimg, (Player.X_pos, Player.Y_pos))
                 Player.Health -= 10
                 enemyBullets.remove(bullet)
-
-
-            
 
         Player.move_X(KEY)
 
